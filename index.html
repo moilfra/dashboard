@@ -195,6 +195,42 @@ td{padding:9px 13px;border-bottom:1px solid #1e293b11;vertical-align:middle;}
 </head>
 <body>
 
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay" style="position:fixed;inset:0;background:#020617;display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px">
+  <div style="background:linear-gradient(135deg,#0f172a,#0c1a2e);border:1px solid #1e293b;border-radius:18px;padding:48px 44px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+    <div style="font-size:54px;margin-bottom:14px">🔒</div>
+    <h1 style="font-size:24px;font-weight:800;color:#f1f5f9;margin-bottom:8px;letter-spacing:-.5px">MOILFRA Dashboard</h1>
+    <p style="font-size:13px;color:#64748b;margin-bottom:28px">Inserisci la password per accedere</p>
+    <input type="password" id="login-pwd" autofocus placeholder="Password"
+      style="width:100%;background:#0d1424;border:2px solid #1e293b;color:#e2e8f0;border-radius:10px;padding:14px 18px;font-size:16px;outline:none;font-family:inherit;margin-bottom:14px;text-align:center;letter-spacing:4px"
+      onkeydown="if(event.key==='Enter') tryLogin()">
+    <button onclick="tryLogin()" style="width:100%;background:linear-gradient(135deg,#1e3a5f,#0f172a);color:#38bdf8;border:2px solid #38bdf8;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">🔓 Accedi</button>
+    <div id="login-err" style="font-size:12px;color:#ef4444;margin-top:14px;min-height:18px;font-weight:600"></div>
+  </div>
+</div>
+
+<script>
+const APP_PASSWORD = '2309183';
+function tryLogin() {
+  const pwd = document.getElementById('login-pwd').value;
+  const err = document.getElementById('login-err');
+  if (pwd === APP_PASSWORD) {
+    document.getElementById('login-overlay').style.display = 'none';
+    try { sessionStorage.setItem('moilfra_auth', '1'); } catch(e) {}
+  } else {
+    err.textContent = '❌ Password errata';
+    document.getElementById('login-pwd').value = '';
+    document.getElementById('login-pwd').focus();
+    setTimeout(() => { err.textContent = ''; }, 2500);
+  }
+}
+try {
+  if (sessionStorage.getItem('moilfra_auth') === '1') {
+    document.getElementById('login-overlay').style.display = 'none';
+  }
+} catch(e) {}
+</script>
+
 <!-- HEADER -->
 <div class="header">
   <div class="logo">
