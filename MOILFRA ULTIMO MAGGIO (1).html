@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOILFRA Dashboard</title>
+<style>
+:root {
+  --bg:#020617;--bg2:#0f172a;--bg3:#0d1424;--bg4:#0a0f1e;
+  --border:#1e293b;--text:#e2e8f0;--muted:#64748b;--dim:#475569;
+  --blue:#38bdf8;--green:#22c55e;--yellow:#f59e0b;--red:#ef4444;
+  --orange:#fb923c;--purple:#a78bfa;--teal:#34d399;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;}
+.mono{font-family:'Consolas','Courier New',monospace;}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#0f172a,#0c1a2e);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-dot{width:10px;height:10px;background:var(--green);border-radius:50%;box-shadow:0 0 10px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.logo h1{font-size:20px;font-weight:800;color:#f1f5f9;letter-spacing:-.5px;}
+.logo-sub{font-size:11px;color:var(--muted);font-weight:400;}
+.header-right{font-size:12px;color:var(--dim);text-align:right;}
+
+/* PERIOD SELECTOR */
+.period-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.period-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;}
+.period-tabs{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+.p-btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--muted);border:1px solid var(--border);transition:all .15s;font-family:inherit;display:flex;align-items:center;gap:8px;}
+.p-btn:hover{color:#94a3b8;border-color:#334155;}
+.p-btn.active{background:linear-gradient(135deg,#1e3a5f,#0f172a);color:var(--blue);border-color:var(--blue);box-shadow:0 0 12px #38bdf833;}
+.p-btn .x-btn{background:transparent;border:none;color:inherit;opacity:.4;cursor:pointer;padding:0 4px;font-size:14px;font-family:inherit;}
+.p-btn .x-btn:hover{opacity:1;color:var(--red);}
+.p-btn.confronto{background:linear-gradient(135deg,#2e1065,#0f172a);color:var(--purple);border-color:#a78bfa55;}
+.p-btn.confronto.active{box-shadow:0 0 12px #a78bfa55;border-color:var(--purple);}
+.btn-add{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#14532d,#0f172a);color:var(--green);border:1px solid var(--green);transition:all .15s;font-family:inherit;}
+.btn-add:hover{box-shadow:0 0 14px #22c55e44;}
+.btn-tool{padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:var(--bg3);color:var(--muted);border:1px solid var(--border);transition:all .15s;font-family:inherit;display:flex;align-items:center;gap:6px;}
+.btn-tool:hover{color:var(--text);border-color:#334155;background:var(--bg2);}
+.btn-tool.export{color:var(--blue);border-color:#38bdf855;}
+.btn-tool.export:hover{box-shadow:0 0 12px #38bdf833;}
+.btn-tool.import{color:var(--orange);border-color:#fb923c55;}
+.btn-tool.import:hover{box-shadow:0 0 12px #fb923c33;}
+.btn-tool input[type=file]{display:none;}
+.tools-group{display:flex;gap:6px;align-items:center;}
+.tools-divider{width:1px;height:24px;background:var(--border);margin:0 4px;}
+
+/* TOAST */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:10px;}
+.toast{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 20px;color:var(--text);font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:slideIn .3s ease;display:flex;align-items:center;gap:10px;max-width:380px;}
+.toast.success{border-color:#22c55e55;background:linear-gradient(135deg,#0a1f12,#0f172a);}
+.toast.error{border-color:#ef444455;background:linear-gradient(135deg,#1f0a0a,#0f172a);}
+.toast.info{border-color:#38bdf855;background:linear-gradient(135deg,#0a1929,#0f172a);}
+.toast .icon{font-size:18px;}
+@keyframes slideIn{from{transform:translateX(400px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+@keyframes slideOut{to{transform:translateX(400px);opacity:0;}}
+.toast.out{animation:slideOut .3s ease forwards;}
+
+/* MODAL UPLOAD */
+.modal-bg{position:fixed;inset:0;background:rgba(2,6,23,.85);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+.modal-bg.active{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:760px;width:100%;max-height:90vh;overflow-y:auto;position:relative;}
+.modal-close{position:absolute;top:14px;right:18px;background:transparent;border:none;color:var(--muted);font-size:24px;cursor:pointer;font-family:inherit;}
+.modal-close:hover{color:var(--red);}
+.modal h2{font-size:20px;font-weight:700;color:#f1f5f9;margin-bottom:8px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+.period-name-input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px 16px;font-size:14px;outline:none;font-family:inherit;margin-bottom:20px;}
+.period-name-input:focus{border-color:var(--blue);}
+.upload-cards{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+.upload-card{flex:1;min-width:240px;background:var(--bg3);border:2px dashed var(--border);border-radius:12px;padding:24px 18px;text-align:center;cursor:pointer;transition:all .2s;position:relative;}
+.upload-card:hover,.upload-card.drag{border-color:var(--blue);background:#0c1f35;}
+.upload-card.loaded{border-color:var(--green);border-style:solid;background:#0a1f12;}
+.upload-card .icon{font-size:36px;margin-bottom:10px;}
+.upload-card .card-title{font-size:14px;font-weight:700;color:#f1f5f9;margin-bottom:4px;}
+.upload-card .card-sub{font-size:11px;color:var(--muted);}
+.upload-card .status{margin-top:10px;font-size:11px;font-weight:600;padding:5px 11px;border-radius:18px;display:inline-block;}
+.status.waiting{background:#1e293b;color:var(--dim);}
+.status.ok{background:#14532d;color:var(--green);}
+.status.err{background:#7f1d1d;color:var(--red);}
+.upload-card input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+.btn-primary{background:linear-gradient(135deg,#1e3a5f,#0f172a);color:var(--blue);border:2px solid var(--blue);border-radius:10px;padding:11px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-primary:hover:not(:disabled){background:linear-gradient(135deg,#1d4ed8,#1e3a5f);box-shadow:0 0 22px #38bdf833;}
+.btn-primary:disabled{opacity:.3;cursor:not-allowed;}
+.btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:11px 24px;font-size:14px;cursor:pointer;font-family:inherit;}
+.btn-secondary:hover{color:var(--text);border-color:#334155;}
+
+/* EMPTY STATE */
+.empty{padding:80px 32px;text-align:center;}
+.empty .icon{font-size:64px;margin-bottom:20px;}
+.empty h2{font-size:24px;font-weight:700;color:#f1f5f9;margin-bottom:12px;}
+.empty p{font-size:15px;color:var(--muted);margin-bottom:28px;max-width:520px;margin-left:auto;margin-right:auto;}
+.empty .btn-primary{font-size:16px;padding:14px 36px;}
+
+/* TABS */
+.tabs-bar{display:flex;gap:4px;padding:0 32px;border-bottom:1px solid var(--border);background:var(--bg);overflow-x:auto;}
+.tab{padding:12px 22px;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;cursor:pointer;color:var(--dim);border:1px solid transparent;border-bottom:none;transition:all .15s;white-space:nowrap;font-family:inherit;}
+.tab.active{background:var(--bg2);color:var(--blue);border-color:var(--border);border-bottom:1px solid var(--bg2);}
+.tab:hover:not(.active){color:#94a3b8;}
+
+.dash{padding:28px 32px;display:none;}
+.dash.active{display:block;}
+
+/* STAT CARDS */
+.cards{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px;}
+.card{background:var(--bg2);border-radius:14px;padding:20px 22px;flex:1;min-width:150px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.card-blue::before{background:linear-gradient(90deg,var(--blue),#0284c7);}
+.card-green::before{background:linear-gradient(90deg,var(--green),#16a34a);}
+.card-yellow::before{background:linear-gradient(90deg,var(--yellow),#d97706);}
+.card-purple::before{background:linear-gradient(90deg,var(--purple),#7c3aed);}
+.card-teal::before{background:linear-gradient(90deg,var(--teal),#059669);}
+.card-orange::before{background:linear-gradient(90deg,var(--orange),#ea580c);}
+.card .clabel{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;}
+.card .cval{font-size:26px;font-weight:700;font-family:'Consolas',monospace;line-height:1;}
+.card .csub{font-size:11px;color:var(--dim);margin-top:6px;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:28px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+@media(max-width:900px){.grid2,.grid4{grid-template-columns:1fr;}}
+
+.panel{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.panel.p-red{border-color:#ef444433;}
+.panel.p-yellow{border-color:#f59e0b33;}
+.panel.p-blue{border-color:#38bdf833;}
+.panel.p-green{border-color:#22c55e33;}
+.panel.p-purple{border-color:#a78bfa33;}
+.panel-title{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:16px;color:var(--dim);}
+.panel-title.red{color:var(--red);}
+.panel-title.yellow{color:var(--yellow);}
+.panel-title.blue{color:var(--blue);}
+.panel-title.green{color:var(--green);}
+.panel-title.purple{color:var(--purple);}
+
+.top-item{display:flex;align-items:center;gap:11px;margin-bottom:13px;}
+.top-rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0f172a;flex-shrink:0;}
+.top-name{font-size:13px;font-weight:600;color:#cbd5e1;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
+.top-val{font-size:14px;font-weight:700;font-family:monospace;flex-shrink:0;}
+.bar-wrap{background:#1e293b;border-radius:4px;height:5px;width:100%;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s ease;}
+.badge{display:inline-block;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:600;font-family:monospace;}
+
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--bg3);}
+th{padding:10px 13px;text-align:left;font-size:10px;font-weight:700;color:var(--dim);letter-spacing:.9px;text-transform:uppercase;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;font-family:inherit;}
+th:hover{color:#94a3b8;}
+th.sorted{color:var(--blue);}
+tbody tr:nth-child(even){background:var(--bg4);}
+tbody tr:nth-child(odd){background:var(--bg3);}
+tbody tr:hover{background:#131f35;}
+td{padding:9px 13px;border-bottom:1px solid #1e293b11;vertical-align:middle;}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;}
+.toolbar .info{font-size:13px;color:var(--muted);}
+.search-input{background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:9px 15px;font-size:13px;width:280px;outline:none;font-family:inherit;}
+.search-input:focus{border-color:var(--blue);}
+
+.alert-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #1e293b22;}
+.alert-row:last-child{border-bottom:none;}
+.aname{font-size:12px;color:#94a3b8;flex:1;margin-right:8px;}
+.abadges{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.scroll-list{max-height:280px;overflow-y:auto;padding-right:2px;}
+
+.crit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
+.crit-card{background:var(--bg3);border-radius:9px;padding:12px 14px;border:1px solid #ef444422;}
+.crit-name{font-size:11px;color:#94a3b8;font-weight:600;margin-bottom:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.crit-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+
+/* CONFRONTO */
+.conf-banner{background:linear-gradient(135deg,#2e1065,#0f172a);border:1px solid #a78bfa33;border-radius:12px;padding:16px 20px;margin-bottom:24px;}
+.conf-banner .ct{font-size:11px;color:var(--purple);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;}
+.conf-banner .cd{color:#cbd5e1;font-size:14px;}
+.conf-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.conf-kpi .ck-label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:14px;}
+.conf-kpi .ck-vals{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;}
+.conf-kpi .ck-period{font-size:9px;color:var(--dim);margin-bottom:4px;letter-spacing:.5px;text-transform:uppercase;}
+.conf-kpi .ck-num{font-size:20px;font-weight:700;font-family:monospace;}
+.conf-kpi .ck-arrow{font-size:22px;}
+
+/* STORAGE INFO */
+.storage-info{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);}
+.storage-info b{color:var(--text);}
+.btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);border-radius:8px;padding:6px 14px;font-size:11px;cursor:pointer;font-weight:600;font-family:inherit;}
+.btn-danger:hover{background:#ef444422;}
+
+/* CONFRONTO SELECT */
+.conf-select-bar{display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;align-items:center;background:var(--bg2);padding:16px 20px;border-radius:12px;border:1px solid var(--border);}
+.conf-select-bar label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;}
+.conf-select-bar select{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px;outline:none;font-family:inherit;cursor:pointer;}
+.conf-select-bar select:focus{border-color:var(--blue);}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <div>
+      <h1>MOILFRA Dashboard</h1>
+      <div class="logo-sub">Analisi prestazioni call center · Carica i report mensili</div>
+    </div>
+  </div>
+  <div class="header-right" id="header-info">Nessun periodo caricato</div>
+</div>
+
+<!-- PERIOD SELECTOR -->
+<div class="period-bar" id="period-bar" style="display:none;">
+  <div class="period-label">📅 Periodo:</div>
+  <div class="period-tabs" id="period-tabs"></div>
+  <div class="tools-group">
+    <button class="btn-add" onclick="openModal()">+ Aggiungi periodo</button>
+    <div class="tools-divider"></div>
+    <button class="btn-tool export" onclick="exportData()" title="Esporta tutti i periodi in un file di backup">💾 Esporta backup</button>
+    <label class="btn-tool import" title="Importa periodi da un file di backup">
+      📥 Importa backup
+      <input type="file" accept=".json" onchange="importData(this)">
+    </label>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- MODAL UPLOAD -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>📂 Carica un nuovo periodo</h2>
+    <div class="modal-sub">Dai un nome al periodo (es. "Aprile 2026") e carica i due file CSV di Genesys.</div>
+
+    <input type="text" class="period-name-input" id="period-name" placeholder="Nome periodo (es. Aprile 2026, Maggio 2026...)" maxlength="50">
+
+    <div class="upload-cards">
+      <div class="upload-card" id="card-agenti">
+        <input type="file" accept=".csv" id="file-agenti" onchange="handleFile('agenti',this)">
+        <div class="icon">👤</div>
+        <div class="card-title">CSV Agenti</div>
+        <div class="card-sub">Riepilogo prestazioni agente</div>
+        <div class="status waiting" id="status-agenti">In attesa...</div>
+      </div>
+      <div class="upload-card" id="card-code">
+        <input type="file" accept=".csv" id="file-code" onchange="handleFile('code',this)">
+        <div class="icon">📞</div>
+        <div class="card-title">CSV Code</div>
+        <div class="card-sub">Riepilogo prestazioni code</div>
+        <div class="status waiting" id="status-code">In attesa...</div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Annulla</button>
+      <button class="btn-primary" id="btn-save" disabled onclick="savePeriod()">💾 Salva periodo</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMPTY STATE -->
+<div id="empty-state" class="empty">
+  <div class="icon">📊</div>
+  <h2>Nessun periodo caricato</h2>
+  <p>Inizia caricando il primo report mensile. Ogni periodo che caricherai rimarrà memorizzato nel browser: il mese prossimo basterà aggiungere il nuovo periodo accanto a quelli esistenti.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <button class="btn-primary" onclick="openModal()">+ Carica primo periodo</button>
+    <label class="btn-tool import" style="padding:14px 28px;font-size:15px;cursor:pointer">
+      📥 Importa backup esistente
+      <input type="file" accept=".json" onchange="importData(this)">
+    </label>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-bar" id="tabs-bar" style="display:none;">
+  <div class="tab active" onclick="showTab('riepilogo',this)">📊 Riepilogo</div>
+  <div class="tab" onclick="showTab('agenti',this)">👤 Agenti</div>
+  <div class="tab" onclick="showTab('classifica',this)">🏆 Classifica</div>
+  <div class="tab" onclick="showTab('code',this)">📞 Code</div>
+  <div class="tab" onclick="showTab('alert',this)">⚠️ Alert</div>
+  <button onclick="exportPDF()" style="margin-left:auto;background:linear-gradient(135deg,#7c2d12,#0f172a);color:#fb923c;border:1px solid #fb923c;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;align-self:center;transition:all .15s">📄 Esporta PDF</button>
+</div>
+
+<div id="dash-riepilogo" class="dash"></div>
+<div id="dash-agenti" class="dash"></div>
+<div id="dash-classifica" class="dash"></div>
+<div id="dash-code" class="dash"></div>
+<div id="dash-alert" class="dash"></div>
+<div id="dash-confronto" class="dash"></div>
+
+<script>
+// ── STATE & STORAGE ───────────────────────────────────────────────────────────
+const STORAGE_KEY = 'genesys_periods_v1';
+const POST_VENDITA_CODE = new Set([
+  'CARTA-ACCORDICHIUSI_03','CARTA-ALLIANZ_03','CARTA-BANCOPOSTA_03','CARTA-CATTOLICA_03',
+  'CARTA-GENERALI_03','CARTA-ISTITUZIONALE_03','CARTA-MPS_03','CARTA-NISSANCREDITCARD_03',
+  'CARTA-NUMEROUNICO-ASSIC-GDO_03','CARTA-NUMEROUNICO-BANCHE_03','CARTA-ORIZZONTERENAULT_03',
+  'CARTA-POSTE-VARCELLULARE_03','CARTA-VITTORIACREDITCARD_03','CREDITO-BANCHE_03',
+  'CREDITO-ISTITUZIONALE_03','CS-VARIE-IVRCQ_03','CS-VARIE-PAGOLIGHT_03',
+  'CS-VARIE-VODAFONE_03','VARIE-FIDOAFFARI_03','VARIE-PRONTISSIMO_03',
+  'VARIE-RITORNIPOSTALI_03'
+]);
+function isPostVendita(name) {
+  if (!name) return false;
+  const n = name.trim().toUpperCase();
+  return POST_VENDITA_CODE.has(n);
+}
+let codeGroup = 'POST_VENDITA'; // POST_VENDITA | OAM
+let periods = {};   // {periodName: {agents:[], queues:[], dateRange:''}}
+let currentPeriod = null;
+let confrontoSel = {a:null, b:null};
+let tempAgenti = null, tempCode = null;
+let agentSort = {f:'risposta', d:'desc'};
+let codeSort  = {f:'offerta',  d:'desc'};
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) periods = JSON.parse(raw);
+  } catch(e) { periods = {}; }
+}
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(periods));
+  } catch(e) {
+    alert('Spazio di memoria del browser esaurito. Elimina qualche periodo per liberare spazio.');
+  }
+}
+
+// ── CSV PARSING ───────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const delimiter = lines[0].includes(';') && !lines[0].includes(',') ? ';' : ',';
+  const headers = splitCSVLine(lines[0], delimiter);
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const vals = splitCSVLine(lines[i], delimiter);
+    const obj = {};
+    headers.forEach((h, idx) => {
+      obj[h.trim().replace(/"/g,'')] = vals[idx] ? vals[idx].trim().replace(/"/g,'') : '';
+    });
+    rows.push(obj);
+  }
+  return rows;
+}
+function splitCSVLine(line, delimiter) {
+  const result = [];
+  let current = '', inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') inQuotes = !inQuotes;
+    else if (ch === delimiter && !inQuotes) { result.push(current); current = ''; }
+    else current += ch;
+  }
+  result.push(current);
+  return result;
+}
+
+function msToMMSS(ms) {
+  const v = parseFloat(ms);
+  if (isNaN(v) || v <= 0) return '--';
+  const sec = Math.floor(v / 1000);
+  return String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0');
+}
+function msToSec(ms) { const v = parseFloat(ms); return isNaN(v) ? 0 : Math.round(v / 1000); }
+function toNum(v) { const n = parseFloat(String(v).replace(',','.')); return isNaN(n) ? 0 : n; }
+function toPct(v) { const n = toNum(v); return n > 1 ? Math.round(n*10)/10 : Math.round(n*1000)/10; }
+
+function processAgenti(rows) {
+  return rows.filter(r => toNum(r['Risposta']) > 0).map(r => ({
+    nome:r['Nome agente']||'—', risposta:toNum(r['Risposta']), gestione:toNum(r['Gestione']),
+    gest_sec:msToSec(r['Gestione media']), conv_sec:msToSec(r['Conver. media']), att_sec:msToSec(r['Attesa media']),
+    gest_mmss:msToMMSS(r['Gestione media']), conv_mmss:msToMMSS(r['Conver. media']),
+    att_mmss:msToMMSS(r['Attesa media']), acw_mmss:msToMMSS(r['Media lav. dopo chiam']),
+    in_attesa:toNum(r['In attesa']),
+  }));
+}
+function processCode(rows) {
+  return rows.filter(r => toNum(r['Offerta']) > 0).map(r => ({
+    nome:r['Nome coda']||'—', offerta:toNum(r['Offerta']), rispondi:toNum(r['Rispondi']),
+    abbandona:toNum(r['Abbandona']), risp_pct:toPct(r['% risposte']), abband_pct:toPct(r['% abbandoni']),
+    sla_pct:toPct(r['% livello di servizio']), sla_target:toPct(r['% obiettivo livello di servizio']),
+    vmr_mmss:msToMMSS(r['VMR']), vmr_sec:msToSec(r['VMR']),
+    tma_mmss:msToMMSS(r['Tempo medio attesa']), gest_mmss:msToMMSS(r['Gestione media']),
+    gest_sec:msToSec(r['Gestione media']), conv_mmss:msToMMSS(r['Durata media conversazione']),
+  }));
+}
+
+function extractDateRange(rows) {
+  if (!rows.length) return '';
+  const r = rows[0];
+  return (r['Inizio intervallo']||'') + ' → ' + (r['Fine intervallo']||'');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal-bg').classList.add('active');
+  document.getElementById('period-name').value = '';
+  resetUploadCards();
+  tempAgenti = null; tempCode = null;
+  document.getElementById('btn-save').disabled = true;
+}
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('active');
+}
+function resetUploadCards() {
+  ['agenti','code'].forEach(t => {
+    setStatus(t, 'In attesa...', 'waiting');
+    document.getElementById(`card-${t}`).classList.remove('loaded');
+    document.getElementById(`file-${t}`).value = '';
+  });
+}
+function setStatus(type, msg, cls) {
+  const el = document.getElementById(`status-${type}`);
+  el.textContent = msg;
+  el.className = `status ${cls}`;
+}
+
+function handleFile(type, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const rows = parseCSV(e.target.result);
+      if (type === 'agenti') {
+        if (!rows[0] || !('Nome agente' in rows[0])) throw new Error('Colonna "Nome agente" non trovata');
+        tempAgenti = {rows, fileName:file.name};
+        setStatus('agenti', `✅ ${file.name} (${rows.length} righe)`, 'ok');
+      } else {
+        if (!rows[0] || !('Nome coda' in rows[0])) throw new Error('Colonna "Nome coda" non trovata');
+        tempCode = {rows, fileName:file.name};
+        setStatus('code', `✅ ${file.name} (${rows.length} righe)`, 'ok');
+      }
+      document.getElementById(`card-${type}`).classList.add('loaded');
+      checkSaveReady();
+    } catch(err) {
+      setStatus(type, `❌ ${err.message}`, 'err');
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function checkSaveReady() {
+  const name = document.getElementById('period-name').value.trim();
+  document.getElementById('btn-save').disabled = !(tempAgenti && tempCode && name);
+}
+document.getElementById('period-name').addEventListener('input', checkSaveReady);
+
+function savePeriod() {
+  const name = document.getElementById('period-name').value.trim();
+  if (!name || !tempAgenti || !tempCode) return;
+  if (periods[name] && !confirm(`Il periodo "${name}" esiste già. Sovrascrivere?`)) return;
+
+  const agents = processAgenti(tempAgenti.rows);
+  const queues = processCode(tempCode.rows);
+  const dateRange = extractDateRange(tempAgenti.rows) || extractDateRange(tempCode.rows);
+
+  periods[name] = { agents, queues, dateRange, savedAt: new Date().toISOString() };
+  saveToStorage();
+  closeModal();
+  currentPeriod = name;
+  renderApp();
+  showToast(`Periodo "${name}" salvato (${agents.length} agenti, ${queues.length} code)`, 'success');
+}
+
+function deletePeriod(name) {
+  if (!confirm(`Eliminare il periodo "${name}"? L'azione è irreversibile.`)) return;
+  delete periods[name];
+  saveToStorage();
+  if (currentPeriod === name) currentPeriod = Object.keys(periods)[0] || null;
+  renderApp();
+  showToast(`Periodo "${name}" eliminato`, 'info');
+}
+
+// ── RENDER APP ────────────────────────────────────────────────────────────────
+function renderApp() {
+  const names = Object.keys(periods);
+  if (!names.length) {
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('period-bar').style.display = 'none';
+    document.getElementById('tabs-bar').style.display = 'none';
+    document.querySelectorAll('.dash').forEach(d=>d.classList.remove('active'));
+    document.getElementById('header-info').textContent = 'Nessun periodo caricato';
+    return;
+  }
+
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('period-bar').style.display = 'flex';
+  document.getElementById('tabs-bar').style.display = 'flex';
+
+  if (!currentPeriod || (currentPeriod !== '__CONF__' && !periods[currentPeriod])) currentPeriod = names[0];
+
+  // Render period tabs
+  const tabsHtml = names.map(n => `
+    <button class="p-btn ${n===currentPeriod && currentPeriod!=='__CONF__'?'active':''}" onclick="selectPeriod('${n.replace(/'/g,"\\'")}')">
+      📅 ${n}
+      <button class="x-btn" onclick="event.stopPropagation();deletePeriod('${n.replace(/'/g,"\\'")}')" title="Elimina periodo">✕</button>
+    </button>`).join('');
+  const confBtn = names.length >= 2
+    ? `<button class="p-btn confronto ${currentPeriod==='__CONF__'?'active':''}" onclick="selectPeriod('__CONF__')">↔ Confronto</button>`
+    : '';
+  document.getElementById('period-tabs').innerHTML = tabsHtml + confBtn;
+
+  // Header info
+  document.getElementById('header-info').innerHTML =
+    `<strong style="color:var(--blue)">${names.length}</strong> periodo${names.length>1?'i':''} memorizzato${names.length>1?'i':''} · 💾 Salvati nel browser`;
+
+  if (currentPeriod === '__CONF__') {
+    renderConfronto();
+  } else {
+    renderRiepilogo();
+    renderAgenti();
+    renderClassifica();
+    renderCode();
+    renderAlert();
+    showTab('riepilogo');
+  }
+}
+
+function selectPeriod(name) {
+  currentPeriod = name;
+  renderApp();
+}
+
+// ── COLORI ────────────────────────────────────────────────────────────────────
+function slaColor(v)  { return v>=70?'#22c55e':v>=50?'#f59e0b':'#ef4444'; }
+function rispColor(v) { return v>=85?'#22c55e':v>=75?'#f59e0b':'#ef4444'; }
+function abbColor(v)  { return v<=10?'#22c55e':v<=20?'#f59e0b':'#ef4444'; }
+function gestColor(s) { return s>360?'#f59e0b':s>240?'#cbd5e1':'#22c55e'; }
+function badge(text, color) {
+  return `<span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${text}</span>`;
+}
+function minibar(val, color, max) {
+  const w = Math.min(val/max*100, 100);
+  return `<div class="bar-wrap"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>`;
+}
+
+// ── RIEPILOGO ─────────────────────────────────────────────────────────────────
+function renderRiepilogo() {
+  const p = periods[currentPeriod];
+  if (!p) return;
+  const a = p.agents, q = p.queues;
+  const totOff = q.reduce((s,x)=>s+x.offerta,0);
+  const totRisp = q.reduce((s,x)=>s+x.rispondi,0);
+  const totAbb = q.reduce((s,x)=>s+x.abbandona,0);
+  const avgSLA = q.length ? (q.reduce((s,x)=>s+x.sla_pct,0)/q.length).toFixed(1) : 0;
+  const rPct = totOff ? (totRisp/totOff*100).toFixed(1) : 0;
+  const aPct = totOff ? (totAbb/totOff*100).toFixed(1) : 0;
+
+  const cards = [
+    {l:'Chiamate Offerte',  v:totOff.toLocaleString('it'), s:'totale periodo', cls:'card-blue',  col:'#38bdf8'},
+    {l:'Chiamate Risposte', v:totRisp.toLocaleString('it'),s:`${rPct}% risposta`,cls:'card-green',col:'#22c55e'},
+    {l:'Abbandoni',         v:totAbb.toLocaleString('it'), s:`${aPct}% abbandono`,cls:'card-yellow',col:'#f59e0b'},
+    {l:'SLA Medio Code',    v:avgSLA+'%',                  s:'target 80%',     cls:'card-purple',col:'#a78bfa'},
+    {l:'Agenti Attivi',     v:a.length,                    s:'con chiamate',   cls:'card-teal',  col:'#34d399'},
+    {l:'Code Attive',       v:q.length,                    s:'con traffico',   cls:'card-orange',col:'#fb923c'},
+  ];
+
+  const top5vol  = [...a].sort((x,y)=>y.risposta-x.risposta).slice(0,5);
+  const top5fast = [...a].sort((x,y)=>x.gest_sec-y.gest_sec).filter(x=>x.gest_sec>0).slice(0,5);
+  const critQ    = q.filter(x=>x.sla_pct<40).sort((x,y)=>x.sla_pct-y.sla_pct);
+  const rankC = ['#f59e0b','#94a3b8','#b45309','#38bdf8','#64748b'];
+  const greenC = ['#22c55e','#34d399','#4ade80','#86efac','#bbf7d0'];
+
+  document.getElementById('dash-riepilogo').innerHTML = `
+    <div class="storage-info">
+      <div>📅 Periodo: <b>${currentPeriod}</b> · ${p.dateRange||''} · ${a.length} agenti · ${q.length} code</div>
+      <button class="btn-danger" onclick="deletePeriod('${currentPeriod.replace(/'/g,"\\'")}')">🗑 Elimina questo periodo</button>
+    </div>
+
+    <div class="cards">${cards.map(c=>`
+      <div class="card ${c.cls}" style="border:1px solid ${c.col}33;">
+        <div class="clabel">${c.l}</div>
+        <div class="cval mono" style="color:${c.col}">${c.v}</div>
+        <div class="csub">${c.s}</div>
+      </div>`).join('')}</div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-title">🏆 Top 5 Agenti — Chiamate Risposte</div>
+        ${top5vol.map((ag,i)=>`
+          <div class="top-item">
+            <div class="top-rank" style="background:${rankC[i]}">${i+1}</div>
+            <div style="flex:1;min-width:0">
+              <div class="top-name">${ag.nome}</div>
+              ${minibar(ag.risposta,rankC[i],top5vol[0].risposta)}
+            </div>
+            <div class="top-val mono" style="color:${rankC[i]}">${ag.risposta}</div>
+          </div>`).join('')}
+      </div>
+      <div class="panel">
+        <div class="panel-title">⚡ Top 5 Agenti — Gestione Media Più Bassa</div>
+        ${top5fast.map((ag,i)=>`
+          <div class="top-item">
+            <div class="top-rank" style="background:${greenC[i]}">${i+1}</div>
+            <div style="flex:1;min-width:0">
+              <div class="top-name">${ag.nome}</div>
+              ${minibar(ag.gest_sec,greenC[i],top5fast[top5fast.length-1].gest_sec+1)}
+            </div>
+            <div class="top-val mono" style="color:${greenC[i]}">${ag.gest_mmss}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel p-red" style="margin-top:22px">
+      <div class="panel-title red">🔴 Code con SLA Critico (< 40%) — ${critQ.length} code</div>
+      <div class="crit-grid">
+        ${critQ.slice(0,24).map(cq=>`
+          <div class="crit-card">
+            <div class="crit-name">${cq.nome.replace('CAF-APT-','').replace('_03','')}</div>
+            <div class="crit-row">
+              ${badge('SLA '+cq.sla_pct+'%','#ef4444')}
+              <span style="font-size:11px;color:#64748b">Abb. ${cq.abband_pct}%</span>
+            </div>
+            ${minibar(cq.sla_pct,'#ef4444',100)}
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ── AGENTI ────────────────────────────────────────────────────────────────────
+function renderAgenti() {
+  const p = periods[currentPeriod];
+  if (!p) return;
+  renderAgentiTable();
+}
+
+function renderAgentiTable() {
+  const p = periods[currentPeriod];
+  const q = (document.getElementById('agent-search-input')?.value||'').toLowerCase();
+  let arr = p.agents.filter(a=>a.nome.toLowerCase().includes(q));
+  arr.sort((a,b)=>{
+    const va=a[agentSort.f]??0, vb=b[agentSort.f]??0;
+    return agentSort.d==='asc'?(va>vb?1:-1):(va<vb?1:-1);
+  });
+  const th = (label, field) => {
+    const active = agentSort.f === field;
+    return `<th onclick="sortAgents('${field}')" class="${active?'sorted':''}">${label}${active?(agentSort.d==='asc'?' ↑':' ↓'):''}</th>`;
+  };
+  document.getElementById('dash-agenti').innerHTML = `
+    <div class="storage-info">📅 <b>${currentPeriod}</b> · ${p.dateRange||''}</div>
+    <div class="toolbar">
+      <div class="info">${arr.length} agenti · Clicca intestazione per ordinare</div>
+      <input class="search-input" id="agent-search-input" placeholder="🔍 Cerca agente..." oninput="renderAgentiTable()" value="${q}">
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          ${th('Agente','nome')}${th('Risposte','risposta')}${th('Gestite','gestione')}
+          ${th('Gest. Media','gest_sec')}${th('Conv. Media','conv_sec')}${th('Att. Media','att_sec')}
+          <th>ACW</th>${th('In Attesa','in_attesa')}<th>Segnalazioni</th>
+        </tr></thead>
+        <tbody>${arr.map(a=>{
+          const gc = gestColor(a.gest_sec);
+          const note = a.gest_sec>360 ? badge('⚠️ Gest. >6min','#f59e0b') : '';
+          return `<tr>
+            <td style="font-weight:600;color:#cbd5e1">${a.nome}</td>
+            <td style="text-align:center"><span class="mono" style="color:#38bdf8;font-weight:700;font-size:14px">${a.risposta}</span></td>
+            <td style="text-align:center"><span class="mono" style="color:#64748b">${a.gestione}</span></td>
+            <td><div style="display:flex;flex-direction:column;gap:4px"><span class="mono" style="color:${gc};font-weight:600">${a.gest_mmss}</span>${minibar(a.gest_sec,gc,600)}</div></td>
+            <td style="text-align:center"><span class="mono" style="color:#94a3b8">${a.conv_mmss}</span></td>
+            <td style="text-align:center"><span class="mono" style="color:#94a3b8">${a.att_mmss}</span></td>
+            <td style="text-align:center"><span class="mono" style="color:#64748b">${a.acw_mmss}</span></td>
+            <td style="text-align:center">${badge(a.in_attesa, a.in_attesa>80?'#f59e0b':'#475569')}</td>
+            <td>${note}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`;
+}
+function sortAgents(f) {
+  agentSort = agentSort.f===f ? {f, d:agentSort.d==='desc'?'asc':'desc'} : {f, d:'desc'};
+  renderAgentiTable();
+}
+
+// ── CODE ──────────────────────────────────────────────────────────────────────
+function renderCode() {
+  const p = periods[currentPeriod];
+  if (!p) return;
+  renderCodeTable();
+}
+function setCodeGroup(g) {
+  codeGroup = g;
+  renderCodeTable();
+}
+function renderCodeTable() {
+  const p = periods[currentPeriod];
+  const q = (document.getElementById('code-search-input')?.value||'').toLowerCase();
+  // Split queues into POST VENDITA and OAM
+  const allQ = p.queues;
+  const postVendita = allQ.filter(c => isPostVendita(c.nome));
+  const oam = allQ.filter(c => !isPostVendita(c.nome));
+  const baseArr = codeGroup === 'POST_VENDITA' ? postVendita : oam;
+  let arr = baseArr.filter(c=>c.nome.toLowerCase().includes(q));
+  arr.sort((a,b)=>{
+    const va=a[codeSort.f]??0, vb=b[codeSort.f]??0;
+    return codeSort.d==='asc'?(va>vb?1:-1):(va<vb?1:-1);
+  });
+  const th = (label, field) => {
+    const active = codeSort.f === field;
+    return `<th onclick="sortCode('${field}')" class="${active?'sorted':''}">${label}${active?(codeSort.d==='asc'?' ↑':' ↓'):''}</th>`;
+  };
+  // Aggregate stats per gruppo
+  const stats = grp => {
+    const off = grp.reduce((s,x)=>s+x.offerta,0);
+    const risp = grp.reduce((s,x)=>s+x.rispondi,0);
+    const abb = grp.reduce((s,x)=>s+x.abbandona,0);
+    const sla = grp.length ? (grp.reduce((s,x)=>s+x.sla_pct,0)/grp.length) : 0;
+    return {n:grp.length, off, risp, abb, sla:sla.toFixed(1), rPct: off?((risp/off)*100).toFixed(1):0};
+  };
+  const sPV = stats(postVendita), sOAM = stats(oam);
+  const isPV = codeGroup === 'POST_VENDITA';
+
+  document.getElementById('dash-code').innerHTML = `
+    <div class="storage-info">📅 <b>${currentPeriod}</b> · ${p.dateRange||''}</div>
+
+    <div style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+      <button onclick="setCodeGroup('POST_VENDITA')" style="flex:1;min-width:220px;background:${isPV?'linear-gradient(135deg,#1e3a5f,#0f172a)':'var(--bg2)'};border:2px solid ${isPV?'var(--blue)':'var(--border)'};border-radius:12px;padding:14px 18px;cursor:pointer;text-align:left;font-family:inherit;color:var(--text);transition:all .15s">
+        <div style="font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:${isPV?'var(--blue)':'var(--muted)'};font-weight:700;margin-bottom:6px">📦 POST VENDITA</div>
+        <div style="display:flex;gap:18px;align-items:baseline;flex-wrap:wrap">
+          <span style="font-size:22px;font-weight:700;font-family:monospace;color:${isPV?'var(--blue)':'#cbd5e1'}">${sPV.n}</span>
+          <span style="font-size:11px;color:var(--muted)">code · <b style="color:#cbd5e1">${sPV.off.toLocaleString('it')}</b> offerte · <b style="color:#f87171">${sPV.abb.toLocaleString('it')}</b> abbandoni · SLA ${sPV.sla}%</span>
+        </div>
+      </button>
+      <button onclick="setCodeGroup('OAM')" style="flex:1;min-width:220px;background:${!isPV?'linear-gradient(135deg,#7c2d12,#0f172a)':'var(--bg2)'};border:2px solid ${!isPV?'var(--orange)':'var(--border)'};border-radius:12px;padding:14px 18px;cursor:pointer;text-align:left;font-family:inherit;color:var(--text);transition:all .15s">
+        <div style="font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:${!isPV?'var(--orange)':'var(--muted)'};font-weight:700;margin-bottom:6px">🛠️ OAM</div>
+        <div style="display:flex;gap:18px;align-items:baseline;flex-wrap:wrap">
+          <span style="font-size:22px;font-weight:700;font-family:monospace;color:${!isPV?'var(--orange)':'#cbd5e1'}">${sOAM.n}</span>
+          <span style="font-size:11px;color:var(--muted)">code · <b style="color:#cbd5e1">${sOAM.off.toLocaleString('it')}</b> offerte · <b style="color:#f87171">${sOAM.abb.toLocaleString('it')}</b> abbandoni · SLA ${sOAM.sla}%</span>
+        </div>
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="info">${arr.length} code in <b style="color:${isPV?'var(--blue)':'var(--orange)'}">${isPV?'POST VENDITA':'OAM'}</b> · Clicca intestazione per ordinare</div>
+      <input class="search-input" id="code-search-input" placeholder="🔍 Cerca coda..." oninput="renderCodeTable()" value="${q}">
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          ${th('Coda','nome')}${th('Offerte','offerta')}${th('Risposte','rispondi')}
+          ${th('% Risp.','risp_pct')}${th('Abbandoni','abbandona')}${th('% Abband.','abband_pct')}
+          ${th('VMR','vmr_sec')}${th('TMA','tma_mmss')}${th('SLA %','sla_pct')}
+          ${th('Gest. Media','gest_sec')}<th>Semaforo</th>
+        </tr></thead>
+        <tbody>${arr.map(c=>{
+          const sc = slaColor(c.sla_pct), rc = rispColor(c.risp_pct), ac = abbColor(c.abband_pct);
+          const sem = c.sla_pct>=70?badge('🟢 OK','#22c55e'):c.sla_pct>=50?badge('🟡 Attenzione','#f59e0b'):badge('🔴 Critico','#ef4444');
+          return `<tr>
+            <td style="font-size:12px;font-weight:600;color:#cbd5e1;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nome.replace('_03','')}</td>
+            <td style="text-align:center"><span class="mono" style="color:#38bdf8;font-weight:700">${c.offerta}</span></td>
+            <td style="text-align:center"><span class="mono" style="color:#94a3b8">${c.rispondi}</span></td>
+            <td>${badge(c.risp_pct+'%',rc)}<div style="margin-top:4px">${minibar(c.risp_pct,rc,100)}</div></td>
+            <td style="text-align:center"><span class="mono" style="color:#f87171">${c.abbandona}</span></td>
+            <td style="text-align:center">${badge(c.abband_pct+'%',ac)}</td>
+            <td style="text-align:center"><span class="mono" style="color:#94a3b8">${c.vmr_mmss}</span></td>
+            <td style="text-align:center"><span class="mono" style="color:#94a3b8">${c.tma_mmss}</span></td>
+            <td>${badge(c.sla_pct+'%',sc)}<div style="margin-top:4px">${minibar(c.sla_pct,sc,100)}</div></td>
+            <td style="text-align:center"><span class="mono" style="color:#94a3b8">${c.gest_mmss}</span></td>
+            <td style="text-align:center">${sem}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`;
+}
+function sortCode(f) {
+  codeSort = codeSort.f===f ? {f, d:codeSort.d==='desc'?'asc':'desc'} : {f, d:'desc'};
+  renderCodeTable();
+}
+
+// ── ALERT ─────────────────────────────────────────────────────────────────────
+function renderAlert() {
+  const p = periods[currentPeriod];
+  if (!p) return;
+  const a = p.agents, q = p.queues;
+  const slaList  = q.filter(x=>x.sla_pct<40).sort((x,y)=>x.sla_pct-y.sla_pct);
+  const abbList  = q.filter(x=>x.abband_pct>25).sort((x,y)=>y.abband_pct-x.abband_pct);
+  const gestList = a.filter(x=>x.gest_sec>360).sort((x,y)=>y.gest_sec-x.gest_sec);
+  const volList  = a.filter(x=>x.risposta<100).sort((x,y)=>x.risposta-y.risposta);
+  const alertList = (items, fn) => items.length
+    ? `<div class="scroll-list">${items.map(fn).join('')}</div>`
+    : `<div style="color:#22c55e;font-size:13px;padding:8px 0">✅ Nessuna anomalia rilevata</div>`;
+
+  document.getElementById('dash-alert').innerHTML = `
+    <div class="storage-info">📅 <b>${currentPeriod}</b> · ${p.dateRange||''}</div>
+    <div class="grid4">
+      <div class="panel p-red">
+        <div class="panel-title red">🔴 SLA Critico (<40%) — ${slaList.length} code</div>
+        ${alertList(slaList, c=>`<div class="alert-row"><span class="aname">${c.nome.replace('CAF-APT-','').replace('_03','')}</span><div class="abadges">${badge('SLA '+c.sla_pct+'%','#ef4444')} ${badge('Abb '+c.abband_pct+'%','#f97316')}</div></div>`)}
+      </div>
+      <div class="panel p-yellow">
+        <div class="panel-title yellow">🟡 Abbandoni Alti (>25%) — ${abbList.length} code</div>
+        ${alertList(abbList, c=>`<div class="alert-row"><span class="aname">${c.nome.replace('CAF-APT-','').replace('_03','')}</span><div class="abadges">${badge(c.abband_pct+'%','#f59e0b')} ${badge(c.abbandona+' ch.','#64748b')}</div></div>`)}
+      </div>
+      <div class="panel p-yellow">
+        <div class="panel-title yellow">⏱️ Agenti Gestione > 6 min — ${gestList.length}</div>
+        ${alertList(gestList, ag=>`<div class="alert-row"><span class="aname">${ag.nome}</span><div class="abadges">${badge(ag.gest_mmss,'#f59e0b')} ${badge(ag.risposta+' risp.','#475569')}</div></div>`)}
+      </div>
+      <div class="panel p-blue">
+        <div class="panel-title blue">📉 Agenti Basso Volume (<100) — ${volList.length}</div>
+        ${alertList(volList, ag=>`<div class="alert-row"><span class="aname">${ag.nome}</span><div class="abadges">${badge(ag.risposta+' risp.','#38bdf8')} ${badge(ag.gest_mmss,'#475569')}</div></div>`)}
+      </div>
+    </div>`;
+}
+
+// ── CONFRONTO MULTI-PERIODO ───────────────────────────────────────────────────
+const POST_VENDITA_KEY = 'POST_VENDITA';
+const OAM_KEY = 'OAM';
+let confrontoFilter = 'TUTTI'; // TUTTI | POST_VENDITA | OAM
+
+function getPeriodSummary(p, filter) {
+  let queues = p.queues;
+  if (filter === POST_VENDITA_KEY) queues = queues.filter(q => isPostVendita(q.nome));
+  else if (filter === OAM_KEY) queues = queues.filter(q => !isPostVendita(q.nome));
+
+  const totOff = queues.reduce((s,x)=>s+x.offerta,0);
+  const totRisp = queues.reduce((s,x)=>s+x.rispondi,0);
+  const totAbb = queues.reduce((s,x)=>s+x.abbandona,0);
+  const avgSLA = queues.length ? queues.reduce((s,x)=>s+x.sla_pct,0)/queues.length : 0;
+  return {
+    offerte:totOff, risposte:totRisp, abbandoni:totAbb,
+    risp_pct: totOff ? +(totRisp/totOff*100).toFixed(1) : 0,
+    abb_pct: totOff ? +(totAbb/totOff*100).toFixed(1) : 0,
+    avg_sla: +avgSLA.toFixed(1),
+    n_code: queues.length, n_agenti: p.agents.length,
+  };
+}
+
+function setConfrontoFilter(f) {
+  confrontoFilter = f;
+  renderConfronto();
+}
+
+function renderConfronto() {
+  document.querySelectorAll('.dash').forEach(d=>d.classList.remove('active'));
+  document.getElementById('dash-confronto').classList.add('active');
+  document.getElementById('tabs-bar').style.display = 'none';
+
+  const names = Object.keys(periods);
+  if (names.length < 2) {
+    document.getElementById('dash-confronto').innerHTML = `
+      <div style="text-align:center;padding:60px 20px">
+        <div style="font-size:48px;margin-bottom:14px">📊</div>
+        <h2 style="color:#f1f5f9;margin-bottom:10px">Servono almeno 2 periodi</h2>
+        <p style="color:#64748b">Carica un altro periodo per attivare il confronto.</p>
+      </div>`;
+    return;
+  }
+
+  // Compute summary per period with current filter
+  const summaries = names.map(n => ({ name: n, period: periods[n], s: getPeriodSummary(periods[n], confrontoFilter) }));
+
+  const filterLabel = confrontoFilter === 'TUTTI' ? 'Tutte le code'
+                    : confrontoFilter === POST_VENDITA_KEY ? '📦 POST VENDITA'
+                    : '🛠️ OAM';
+  const filterColor = confrontoFilter === POST_VENDITA_KEY ? '#38bdf8'
+                    : confrontoFilter === OAM_KEY ? '#fb923c' : '#a78bfa';
+
+  // Helper to render KPI evolution row (one row per metric, one column per period)
+  function metricRow(label, key, suffix='', goodUp=true, format='int') {
+    const vals = summaries.map(x => x.s[key]);
+    const max = Math.max(...vals.map(v => Math.abs(v)));
+    const baseline = vals[0]; // first period is baseline
+    return `
+      <tr>
+        <td style="font-weight:700;color:#cbd5e1;padding:14px 16px;border-bottom:1px solid #1e293b22">${label}</td>
+        ${summaries.map((x, i) => {
+          const v = x.s[key];
+          const isBaseline = i === 0;
+          const delta = isBaseline ? 0 : v - baseline;
+          const good = goodUp ? delta >= 0 : delta <= 0;
+          const color = isBaseline ? '#cbd5e1' : (delta === 0 ? '#64748b' : (good ? '#22c55e' : '#ef4444'));
+          const arrow = isBaseline ? '' : (delta > 0 ? '▲' : (delta < 0 ? '▼' : '·'));
+          const valStr = format === 'pct' ? v.toFixed(1) + suffix : v.toLocaleString('it') + suffix;
+          let deltaStr = '';
+          if (!isBaseline && delta !== 0) {
+            const dAbs = Math.abs(delta);
+            const dStr = format === 'pct' ? dAbs.toFixed(1) : (dAbs >= 100 ? Math.round(dAbs).toLocaleString('it') : dAbs.toFixed(1));
+            const pctChange = baseline !== 0 ? ((delta/Math.abs(baseline))*100).toFixed(1) : null;
+            deltaStr = `<div style="font-size:10px;color:${color};margin-top:3px;font-weight:600">${arrow} ${delta>=0?'+':'-'}${dStr}${suffix}${pctChange ? ` (${pctChange>=0?'+':''}${pctChange}%)` : ''}</div>`;
+          }
+          // Mini bar
+          const barW = max > 0 ? Math.min((Math.abs(v)/max)*100, 100) : 0;
+          return `
+            <td style="padding:14px 16px;text-align:center;border-bottom:1px solid #1e293b22;border-left:1px solid #1e293b22">
+              <div style="font-size:18px;font-weight:700;font-family:monospace;color:${color}">${valStr}</div>
+              ${deltaStr}
+              <div style="margin-top:6px;background:#1e293b;border-radius:3px;height:4px;overflow:hidden">
+                <div style="width:${barW}%;height:100%;background:${color};border-radius:3px"></div>
+              </div>
+            </td>`;
+        }).join('')}
+      </tr>`;
+  }
+
+  // Top 5 agents trend per period
+  const topAgentsPerPeriod = summaries.map(x => ({
+    name: x.name,
+    top: [...x.period.agents].sort((a,b)=>b.risposta-a.risposta).slice(0,5)
+  }));
+
+  document.getElementById('dash-confronto').innerHTML = `
+    <div style="background:linear-gradient(135deg,#2e106522,#0f172a);border:1px solid #a78bfa55;border-radius:14px;padding:20px 24px;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:10px;color:#a78bfa;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">↔ CONFRONTO MULTI-PERIODO</div>
+          <div style="color:#f1f5f9;font-size:18px;font-weight:700">Andamento ${filterLabel} su ${summaries.length} periodi</div>
+          <div style="color:#94a3b8;font-size:12px;margin-top:4px">Il primo periodo è la baseline · Verde = miglioramento · Rosso = peggioramento</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button onclick="setConfrontoFilter('TUTTI')" style="padding:8px 14px;border-radius:8px;font-family:inherit;font-weight:600;font-size:12px;cursor:pointer;background:${confrontoFilter==='TUTTI'?'#a78bfa22':'transparent'};color:${confrontoFilter==='TUTTI'?'#a78bfa':'#64748b'};border:1px solid ${confrontoFilter==='TUTTI'?'#a78bfa':'#1e293b'}">Tutte le code</button>
+          <button onclick="setConfrontoFilter('${POST_VENDITA_KEY}')" style="padding:8px 14px;border-radius:8px;font-family:inherit;font-weight:600;font-size:12px;cursor:pointer;background:${confrontoFilter===POST_VENDITA_KEY?'#38bdf822':'transparent'};color:${confrontoFilter===POST_VENDITA_KEY?'#38bdf8':'#64748b'};border:1px solid ${confrontoFilter===POST_VENDITA_KEY?'#38bdf8':'#1e293b'}">📦 POST VENDITA</button>
+          <button onclick="setConfrontoFilter('${OAM_KEY}')" style="padding:8px 14px;border-radius:8px;font-family:inherit;font-weight:600;font-size:12px;cursor:pointer;background:${confrontoFilter===OAM_KEY?'#fb923c22':'transparent'};color:${confrontoFilter===OAM_KEY?'#fb923c':'#64748b'};border:1px solid ${confrontoFilter===OAM_KEY?'#fb923c':'#1e293b'}">🛠️ OAM</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRAFICI ANDAMENTO -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px">
+      <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;padding:16px 18px">
+        <div style="font-size:11px;color:#22c55e;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px">📈 % Risposte vs % Abbandoni</div>
+        <div id="chart-pct"></div>
+      </div>
+      <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;padding:16px 18px">
+        <div style="font-size:11px;color:#a78bfa;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px">🎯 Andamento SLA Medio</div>
+        <div id="chart-sla"></div>
+      </div>
+      <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;padding:16px 18px">
+        <div style="font-size:11px;color:#38bdf8;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px">📞 Volume Offerte vs Risposte</div>
+        <div id="chart-vol"></div>
+      </div>
+      <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;padding:16px 18px">
+        <div style="font-size:11px;color:#ef4444;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px">❌ Abbandoni nel tempo</div>
+        <div id="chart-abb"></div>
+      </div>
+    </div>
+
+    <!-- TIMELINE TABLE -->
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;overflow:hidden;margin-bottom:28px">
+      <div style="padding:14px 20px;background:#0d1424;border-bottom:1px solid #1e293b">
+        <div style="font-size:11px;color:#a78bfa;font-weight:700;letter-spacing:1.2px;text-transform:uppercase">📈 Evoluzione KPI tra periodi</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="background:#0a0f1e">
+              <th style="text-align:left;padding:14px 16px;font-size:10px;color:#64748b;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;border-bottom:1px solid #1e293b;min-width:160px">KPI</th>
+              ${summaries.map((x, i) => `
+                <th style="text-align:center;padding:14px 16px;font-size:11px;color:${i===0?'#94a3b8':'#a78bfa'};font-weight:700;border-bottom:1px solid #1e293b;border-left:1px solid #1e293b;min-width:140px">
+                  ${i===0 ? '<div style="font-size:9px;color:#475569;margin-bottom:2px;letter-spacing:1px">BASELINE</div>' : '<div style="font-size:9px;color:#475569;margin-bottom:2px;letter-spacing:1px">PERIODO ' + (i+1) + '</div>'}
+                  📅 ${x.name}
+                  ${x.period.dateRange ? `<div style="font-size:9px;color:#475569;font-weight:400;margin-top:2px">${x.period.dateRange}</div>` : ''}
+                </th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${metricRow('🔢 Code attive', 'n_code', '', true, 'int')}
+            ${metricRow('📞 Chiamate Offerte', 'offerte', '', true, 'int')}
+            ${metricRow('✅ Chiamate Risposte', 'risposte', '', true, 'int')}
+            ${metricRow('❌ Abbandoni', 'abbandoni', '', false, 'int')}
+            ${metricRow('% Risposte', 'risp_pct', '%', true, 'pct')}
+            ${metricRow('% Abbandoni', 'abb_pct', '%', false, 'pct')}
+            ${metricRow('🎯 SLA Medio', 'avg_sla', '%', true, 'pct')}
+            ${confrontoFilter === 'TUTTI' ? metricRow('👤 Agenti attivi', 'n_agenti', '', true, 'int') : ''}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- HIGHLIGHTS BOXES -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:28px">
+      ${(() => {
+        // Quick verdict highlights
+        const first = summaries[0].s;
+        const last = summaries[summaries.length-1].s;
+        const highlights = [];
+
+        const dRisp = +(last.risp_pct - first.risp_pct).toFixed(1);
+        highlights.push({
+          icon: '✅', label: '% RISPOSTE',
+          val: `${first.risp_pct}% → ${last.risp_pct}%`,
+          delta: dRisp, sign: '%', goodUp: true
+        });
+        const dAbb = +(last.abb_pct - first.abb_pct).toFixed(1);
+        highlights.push({
+          icon: '❌', label: '% ABBANDONI',
+          val: `${first.abb_pct}% → ${last.abb_pct}%`,
+          delta: dAbb, sign: '%', goodUp: false
+        });
+        const dSLA = +(last.avg_sla - first.avg_sla).toFixed(1);
+        highlights.push({
+          icon: '🎯', label: 'SLA MEDIO',
+          val: `${first.avg_sla}% → ${last.avg_sla}%`,
+          delta: dSLA, sign: '%', goodUp: true
+        });
+        const dOff = last.offerte - first.offerte;
+        highlights.push({
+          icon: '📞', label: 'VOLUME OFFERTE',
+          val: `${first.offerte.toLocaleString('it')} → ${last.offerte.toLocaleString('it')}`,
+          delta: dOff, sign: '', goodUp: true
+        });
+
+        return highlights.map(h => {
+          const good = h.goodUp ? h.delta >= 0 : h.delta <= 0;
+          const color = h.delta === 0 ? '#64748b' : (good ? '#22c55e' : '#ef4444');
+          const arrow = h.delta > 0 ? '▲' : (h.delta < 0 ? '▼' : '·');
+          const dStr = Math.abs(h.delta) >= 100 ? Math.round(h.delta).toLocaleString('it') : Math.abs(h.delta).toFixed(1);
+          return `
+            <div style="background:#0f172a;border:1px solid ${color}33;border-radius:12px;padding:16px 18px">
+              <div style="font-size:10px;color:#64748b;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px">${h.icon} ${h.label}</div>
+              <div style="font-size:15px;font-weight:700;color:#cbd5e1;font-family:monospace;margin-bottom:6px">${h.val}</div>
+              <div style="font-size:13px;font-weight:700;color:${color}">${arrow} ${h.delta>=0?'+':'-'}${dStr}${h.sign}</div>
+            </div>`;
+        }).join('');
+      })()}
+    </div>
+
+    <!-- TOP AGENTS PER PERIOD -->
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:14px;padding:20px;margin-bottom:24px">
+      <div style="font-size:11px;color:#f59e0b;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:16px">🏆 Top 5 agenti per chiamate risposte — confronto</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px">
+        ${topAgentsPerPeriod.map(x => `
+          <div style="background:#0d1424;border-radius:10px;padding:14px 16px">
+            <div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:12px">📅 ${x.name}</div>
+            ${x.top.map((ag, i) => {
+              const colors = ['#f59e0b','#94a3b8','#b45309','#38bdf8','#64748b'];
+              return `
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                  <div style="width:22px;height:22px;border-radius:50%;background:${colors[i]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0f172a;flex-shrink:0">${i+1}</div>
+                  <div style="flex:1;min-width:0;font-size:12px;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ag.nome}</div>
+                  <div style="font-size:13px;font-weight:700;font-family:monospace;color:${colors[i]}">${ag.risposta}</div>
+                </div>`;
+            }).join('')}
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  // Disegna i grafici dopo che il DOM è pronto
+  setTimeout(() => {
+    const periodLabels = summaries.map(x => x.name);
+    drawLineChart('chart-pct', [
+      {label:'% Risposte', values:summaries.map(x=>x.s.risp_pct), color:'#22c55e', labels:periodLabels},
+      {label:'% Abbandoni', values:summaries.map(x=>x.s.abb_pct), color:'#f59e0b', labels:periodLabels},
+    ], {format:'pct', showLegend:true, yMax:100});
+    drawLineChart('chart-sla', [
+      {label:'SLA Medio', values:summaries.map(x=>x.s.avg_sla), color:'#a78bfa', labels:periodLabels},
+    ], {format:'pct', yMax:100});
+    drawLineChart('chart-vol', [
+      {label:'Offerte', values:summaries.map(x=>x.s.offerte), color:'#38bdf8', labels:periodLabels},
+      {label:'Risposte', values:summaries.map(x=>x.s.risposte), color:'#22c55e', labels:periodLabels},
+    ], {showLegend:true});
+    drawLineChart('chart-abb', [
+      {label:'Abbandoni', values:summaries.map(x=>x.s.abbandoni), color:'#ef4444', labels:periodLabels},
+    ], {});
+  }, 50);
+}
+
+// ── 🏆 CLASSIFICA AGENTI ──────────────────────────────────────────────────────
+function renderClassifica() {
+  const p = periods[currentPeriod];
+  if (!p || !p.agents.length) return;
+  const agents = p.agents.filter(a => a.risposta > 0);
+  const n = agents.length;
+  if (!n) { document.getElementById('dash-classifica').innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Nessun agente con chiamate</div>'; return; }
+
+  // Compute team averages
+  const avgRisp = agents.reduce((s,a)=>s+a.risposta,0) / n;
+  const avgGest = agents.reduce((s,a)=>s+a.gest_sec,0) / n;
+  const avgAcw  = agents.reduce((s,a)=>s+(a.acw_mmss==='--'?0:parseInt(a.acw_mmss.split(':')[0])*60+parseInt(a.acw_mmss.split(':')[1])),0) / n;
+  const avgAtt  = agents.reduce((s,a)=>s+(a.in_attesa||0),0) / n;
+
+  // Sort by score: high risposte good, low gest bad
+  const ranked = [...agents].sort((a,b)=>b.risposta-a.risposta);
+
+  // Compute composite score: normalize and combine
+  const maxR = Math.max(...ranked.map(a=>a.risposta)) || 1;
+  const minG = Math.min(...ranked.map(a=>a.gest_sec).filter(g=>g>0)) || 1;
+  ranked.forEach(a => {
+    const rNorm = a.risposta / maxR;                       // 0-1, higher better
+    const gNorm = a.gest_sec > 0 ? minG / a.gest_sec : 0; // 0-1, higher better (lower time)
+    a._score = +(rNorm * 0.6 + gNorm * 0.4).toFixed(3);
+  });
+  const byScore = [...ranked].sort((a,b)=>b._score-a._score);
+
+  // Top 3 medals + rest
+  const medalColors = ['#fbbf24','#94a3b8','#b45309'];
+  const medalIcons = ['🥇','🥈','🥉'];
+
+  function mmssFromSec(sec) {
+    if (!sec || sec<=0) return '--';
+    const m = Math.floor(sec/60), s = Math.floor(sec)%60;
+    return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+
+  function perfIcon(val, avg, higherBetter=true) {
+    if (!val || !avg) return '';
+    const diff = ((val-avg)/avg)*100;
+    if (Math.abs(diff) < 5) return '<span style="color:#64748b" title="In media">●</span>';
+    const better = higherBetter ? diff > 0 : diff < 0;
+    return better
+      ? `<span style="color:#22c55e" title="${diff>0?'+':''}${diff.toFixed(0)}% vs media">📈</span>`
+      : `<span style="color:#ef4444" title="${diff>0?'+':''}${diff.toFixed(0)}% vs media">📉</span>`;
+  }
+
+  // Render
+  document.getElementById('dash-classifica').innerHTML = `
+    <div class="sinfo">📅 <b>${currentPeriod}</b>${p.dateRange?' · '+p.dateRange:''} · ${n} agenti in classifica</div>
+
+    <!-- Team Average Banner -->
+    <div style="background:linear-gradient(135deg,#1e3a5f22,#0f172a);border:1px solid #38bdf833;border-radius:14px;padding:16px 22px;margin-bottom:24px">
+      <div style="font-size:10px;color:var(--blue);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px">📊 Medie del team</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600">Risposte medie</div><div style="font-size:20px;font-weight:700;color:#38bdf8;font-family:monospace">${Math.round(avgRisp).toLocaleString('it')}</div></div>
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600">Gest. media</div><div style="font-size:20px;font-weight:700;color:#cbd5e1;font-family:monospace">${mmssFromSec(avgGest)}</div></div>
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600">ACW media</div><div style="font-size:20px;font-weight:700;color:#94a3b8;font-family:monospace">${mmssFromSec(avgAcw)}</div></div>
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600">In attesa media</div><div style="font-size:20px;font-weight:700;color:#94a3b8;font-family:monospace">${avgAtt.toFixed(0)}</div></div>
+      </div>
+    </div>
+
+    <!-- Podio -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px">
+      ${byScore.slice(0,3).map((a,i)=>`
+        <div style="background:linear-gradient(135deg,${medalColors[i]}22,#0f172a);border:2px solid ${medalColors[i]};border-radius:14px;padding:18px;text-align:center;${i===0?'transform:scale(1.03)':''}">
+          <div style="font-size:36px;margin-bottom:6px">${medalIcons[i]}</div>
+          <div style="font-size:13px;font-weight:700;color:#f1f5f9;margin-bottom:6px;min-height:34px;display:flex;align-items:center;justify-content:center">${a.nome}</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Score complessivo</div>
+          <div style="font-size:24px;font-weight:700;color:${medalColors[i]};font-family:monospace;margin-bottom:10px">${(a._score*100).toFixed(1)}</div>
+          <div style="display:flex;justify-content:space-around;font-size:11px;color:#94a3b8;border-top:1px solid #1e293b;padding-top:10px">
+            <div><div style="color:var(--muted);font-size:9px;letter-spacing:.5px">RISP.</div><div style="color:#38bdf8;font-weight:700;font-family:monospace">${a.risposta}</div></div>
+            <div><div style="color:var(--muted);font-size:9px;letter-spacing:.5px">GEST.</div><div style="color:#cbd5e1;font-weight:700;font-family:monospace">${a.gest_mmss}</div></div>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Classifica completa -->
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th style="text-align:center;width:50px">#</th>
+          <th>Agente</th>
+          <th style="text-align:center">Score</th>
+          <th style="text-align:center">Risposte</th>
+          <th style="text-align:center">vs Media</th>
+          <th style="text-align:center">Gest. Media</th>
+          <th style="text-align:center">vs Media</th>
+          <th style="text-align:center">In Attesa</th>
+          <th style="text-align:center">Percentile</th>
+        </tr></thead>
+        <tbody>
+          ${byScore.map((a,i)=>{
+            const pct = Math.round(((n-i)/n)*100);
+            const pctColor = pct>=75?'#22c55e':pct>=50?'#38bdf8':pct>=25?'#f59e0b':'#ef4444';
+            const rank = i<3 ? medalIcons[i] : i+1;
+            return `<tr>
+              <td style="text-align:center;font-weight:700;font-size:14px">${rank}</td>
+              <td style="font-weight:600;color:#cbd5e1">${a.nome}</td>
+              <td style="text-align:center"><span class="mono" style="color:#a78bfa;font-weight:700">${(a._score*100).toFixed(1)}</span></td>
+              <td style="text-align:center"><span class="mono" style="color:#38bdf8;font-weight:700">${a.risposta}</span></td>
+              <td style="text-align:center;font-size:14px">${perfIcon(a.risposta, avgRisp, true)}</td>
+              <td style="text-align:center"><span class="mono" style="color:#cbd5e1">${a.gest_mmss}</span></td>
+              <td style="text-align:center;font-size:14px">${perfIcon(a.gest_sec, avgGest, false)}</td>
+              <td style="text-align:center">${badge(a.in_attesa, a.in_attesa>80?'#f59e0b':'#475569')}</td>
+              <td style="text-align:center">
+                <div style="display:flex;align-items:center;gap:6px;justify-content:center">
+                  <span class="mono" style="color:${pctColor};font-weight:700">${pct}°</span>
+                  <div style="background:#1e293b;border-radius:3px;height:5px;width:60px;overflow:hidden">
+                    <div style="width:${pct}%;height:100%;background:${pctColor};border-radius:3px"></div>
+                  </div>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:14px;font-size:11px;color:var(--dim);text-align:center">
+      📊 <b>Score</b>: combinazione pesata di volume risposte (60%) e velocità gestione (40%) ·
+      📈 = sopra la media del team · 📉 = sotto · ● = in media (±5%)
+    </div>
+  `;
+}
+
+// ── 📈 CHARTS NEL CONFRONTO ───────────────────────────────────────────────────
+function drawLineChart(containerId, datasets, options={}) {
+  const w = options.width || 800;
+  const h = options.height || 280;
+  const padding = {top:30, right:20, bottom:50, left:50};
+  const cw = w - padding.left - padding.right;
+  const ch = h - padding.top - padding.bottom;
+
+  const allValues = datasets.flatMap(d => d.values);
+  const yMax = options.yMax || (Math.max(...allValues, 0) * 1.1) || 100;
+  const yMin = options.yMin !== undefined ? options.yMin : 0;
+  const labels = datasets[0].labels || datasets[0].values.map((_,i)=>i+1);
+
+  const xFor = i => padding.left + (i/(labels.length-1 || 1)) * cw;
+  const yFor = v => padding.top + ch - ((v-yMin)/(yMax-yMin)) * ch;
+
+  // Y axis ticks (5 ticks)
+  const yTicks = [];
+  for (let i=0; i<=5; i++) {
+    const v = yMin + (yMax-yMin)*(i/5);
+    yTicks.push({v, label: options.format==='pct' ? v.toFixed(0)+'%' : Math.round(v).toLocaleString('it')});
+  }
+
+  let svg = `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:${h}px;font-family:'Segoe UI',sans-serif">`;
+  // Grid lines
+  yTicks.forEach(t => {
+    svg += `<line x1="${padding.left}" y1="${yFor(t.v)}" x2="${w-padding.right}" y2="${yFor(t.v)}" stroke="#1e293b" stroke-width="1" stroke-dasharray="2,3"/>`;
+    svg += `<text x="${padding.left-8}" y="${yFor(t.v)+4}" fill="#64748b" font-size="10" text-anchor="end">${t.label}</text>`;
+  });
+  // X labels
+  labels.forEach((lab,i) => {
+    svg += `<text x="${xFor(i)}" y="${h-padding.bottom+18}" fill="#94a3b8" font-size="11" text-anchor="middle" font-weight="600">${lab}</text>`;
+  });
+
+  // Datasets - lines + dots
+  datasets.forEach((ds, di) => {
+    const color = ds.color;
+    const pts = ds.values.map((v,i)=>`${xFor(i)},${yFor(v)}`).join(' ');
+    // Area under line (subtle)
+    if (ds.area !== false) {
+      const areaPts = `${xFor(0)},${yFor(yMin)} ${pts} ${xFor(ds.values.length-1)},${yFor(yMin)}`;
+      svg += `<polygon points="${areaPts}" fill="${color}" fill-opacity="0.08"/>`;
+    }
+    svg += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    // Dots + value labels
+    ds.values.forEach((v,i) => {
+      svg += `<circle cx="${xFor(i)}" cy="${yFor(v)}" r="5" fill="${color}" stroke="#0f172a" stroke-width="2"/>`;
+      const labelStr = options.format==='pct' ? v.toFixed(1)+'%' : Math.round(v).toLocaleString('it');
+      svg += `<text x="${xFor(i)}" y="${yFor(v)-12}" fill="${color}" font-size="11" font-weight="700" text-anchor="middle">${labelStr}</text>`;
+    });
+  });
+
+  // Legend
+  if (datasets.length > 1 || options.showLegend) {
+    let lx = padding.left;
+    datasets.forEach(ds => {
+      svg += `<rect x="${lx}" y="${h-18}" width="10" height="10" fill="${ds.color}" rx="2"/>`;
+      svg += `<text x="${lx+15}" y="${h-9}" fill="#cbd5e1" font-size="11" font-weight="600">${ds.label}</text>`;
+      lx += ds.label.length * 7 + 35;
+    });
+  }
+
+  svg += '</svg>';
+  const el = document.getElementById(containerId);
+  if (el) el.innerHTML = svg;
+}
+
+// ── 📄 EXPORT PDF ─────────────────────────────────────────────────────────────
+function exportPDF() {
+  if (!currentPeriod || currentPeriod === '__CONF__' || !periods[currentPeriod]) {
+    alert('Seleziona un periodo prima di esportare il PDF');
+    return;
+  }
+  const p = periods[currentPeriod];
+  const a = p.agents, q = p.queues;
+
+  // Compute all aggregates
+  const tO = q.reduce((s,x)=>s+x.offerta,0), tR = q.reduce((s,x)=>s+x.rispondi,0), tA = q.reduce((s,x)=>s+x.abbandona,0);
+  const avgSLA = q.length?(q.reduce((s,x)=>s+x.sla_pct,0)/q.length).toFixed(1):0;
+  const rP = tO?(tR/tO*100).toFixed(1):0, aP = tO?(tA/tO*100).toFixed(1):0;
+
+  // Group queues
+  const pvQ = q.filter(c=>isPostVendita(c.nome));
+  const oamQ = q.filter(c=>!isPostVendita(c.nome));
+  const grpStats = grp => {
+    const off = grp.reduce((s,x)=>s+x.offerta,0);
+    const risp = grp.reduce((s,x)=>s+x.rispondi,0);
+    const abb = grp.reduce((s,x)=>s+x.abbandona,0);
+    const sla = grp.length?(grp.reduce((s,x)=>s+x.sla_pct,0)/grp.length).toFixed(1):0;
+    return {n:grp.length, off, risp, abb, sla, rP:off?(risp/off*100).toFixed(1):0, aP:off?(abb/off*100).toFixed(1):0};
+  };
+  const sPV = grpStats(pvQ), sOAM = grpStats(oamQ);
+
+  // Agents stats
+  const agentsActive = a.filter(x=>x.risposta>0);
+  const top10v = [...agentsActive].sort((x,y)=>y.risposta-x.risposta).slice(0,10);
+  const top10f = [...agentsActive].filter(x=>x.gest_sec>0).sort((x,y)=>x.gest_sec-y.gest_sec).slice(0,10);
+
+  // Alerts
+  const slaCrit = q.filter(x=>x.sla_pct<40).sort((x,y)=>x.sla_pct-y.sla_pct);
+  const abbHigh = q.filter(x=>x.abband_pct>25).sort((x,y)=>y.abband_pct-x.abband_pct);
+  const gestHigh = a.filter(x=>x.gest_sec>360).sort((x,y)=>y.gest_sec-x.gest_sec);
+
+  // Top/bottom code per gruppo (by SLA)
+  const pvTop = [...pvQ].sort((x,y)=>y.sla_pct-x.sla_pct).slice(0,5);
+  const pvBot = [...pvQ].sort((x,y)=>x.sla_pct-y.sla_pct).slice(0,5);
+  const oamTop = [...oamQ].sort((x,y)=>y.sla_pct-x.sla_pct).slice(0,5);
+  const oamBot = [...oamQ].sort((x,y)=>x.sla_pct-y.sla_pct).slice(0,5);
+
+  // Build HTML report
+  const reportHTML = `<!DOCTYPE html>
+<html lang="it"><head><meta charset="UTF-8"><title>Report ${currentPeriod} — MOILFRA Dashboard</title>
+<style>
+  @page { size: A4; margin: 12mm; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color:#1e293b; font-size:11px; line-height:1.4; }
+  h1 { font-size:22px; color:#0f172a; margin-bottom:4px; }
+  h2 { font-size:15px; color:#1e3a5f; margin-top:18px; margin-bottom:8px; padding-bottom:4px; border-bottom:2px solid #38bdf8; page-break-after:avoid; }
+  h3 { font-size:13px; color:#334155; margin-top:12px; margin-bottom:6px; page-break-after:avoid; }
+  .header { display:flex; justify-content:space-between; align-items:flex-end; border-bottom:3px solid #0f172a; padding-bottom:10px; margin-bottom:16px; }
+  .subtitle { color:#64748b; font-size:11px; margin-top:2px; }
+  .date-info { text-align:right; font-size:10px; color:#64748b; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin:10px 0; }
+  .kpi { border:1px solid #cbd5e1; border-radius:6px; padding:8px 10px; background:#f8fafc; }
+  .kpi-label { font-size:8px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:.5px; margin-bottom:3px; }
+  .kpi-val { font-size:16px; font-weight:700; color:#0f172a; font-family:'Consolas',monospace; }
+  .kpi-sub { font-size:9px; color:#64748b; margin-top:2px; }
+  .grp-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:10px 0; }
+  .grp-card { border:2px solid; border-radius:8px; padding:10px 14px; }
+  .grp-card.pv { border-color:#38bdf8; background:#f0f9ff; }
+  .grp-card.oam { border-color:#fb923c; background:#fff7ed; }
+  .grp-title { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; }
+  .grp-card.pv .grp-title { color:#0c4a6e; }
+  .grp-card.oam .grp-title { color:#7c2d12; }
+  .grp-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  .grp-stat { text-align:center; }
+  .grp-stat-val { font-size:14px; font-weight:700; font-family:'Consolas',monospace; }
+  .grp-stat-lbl { font-size:8px; color:#64748b; text-transform:uppercase; }
+  table { width:100%; border-collapse:collapse; font-size:9.5px; margin:6px 0 10px 0; }
+  th { background:#0f172a; color:#fff; padding:5px 6px; text-align:left; font-weight:600; font-size:9px; text-transform:uppercase; letter-spacing:.3px; }
+  td { padding:4px 6px; border-bottom:1px solid #e2e8f0; }
+  tr:nth-child(even) td { background:#f8fafc; }
+  .ok { color:#15803d; font-weight:700; }
+  .warn { color:#b45309; font-weight:700; }
+  .err { color:#b91c1c; font-weight:700; }
+  .mono { font-family:'Consolas',monospace; }
+  .right { text-align:right; }
+  .center { text-align:center; }
+  .badge-pdf { display:inline-block; padding:1px 6px; border-radius:3px; font-size:9px; font-weight:700; }
+  .b-green { background:#dcfce7; color:#15803d; }
+  .b-yellow { background:#fef3c7; color:#b45309; }
+  .b-red { background:#fee2e2; color:#b91c1c; }
+  .page-break { page-break-before:always; }
+  .footer { margin-top:20px; padding-top:8px; border-top:1px solid #cbd5e1; font-size:8px; color:#94a3b8; text-align:center; }
+  .summary-box { background:#f1f5f9; border-left:4px solid #38bdf8; padding:8px 12px; margin:10px 0; font-size:10px; }
+</style></head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📞 MOILFRA Dashboard — Report Operativo</h1>
+    <div class="subtitle">Analisi prestazioni call center · Periodo: <b>${currentPeriod}</b></div>
+  </div>
+  <div class="date-info">
+    Periodo: ${p.dateRange || '—'}<br>
+    Generato: ${new Date().toLocaleString('it')}<br>
+    Agenti: <b>${agentsActive.length}</b> · Code: <b>${q.length}</b>
+  </div>
+</div>
+
+<!-- KPI principali -->
+<h2>📊 KPI principali del periodo</h2>
+<div class="kpi-grid">
+  <div class="kpi"><div class="kpi-label">Chiamate Offerte</div><div class="kpi-val">${tO.toLocaleString('it')}</div><div class="kpi-sub">totale periodo</div></div>
+  <div class="kpi"><div class="kpi-label">Risposte</div><div class="kpi-val ok">${tR.toLocaleString('it')}</div><div class="kpi-sub">${rP}% risposta</div></div>
+  <div class="kpi"><div class="kpi-label">Abbandoni</div><div class="kpi-val warn">${tA.toLocaleString('it')}</div><div class="kpi-sub">${aP}% abbandono</div></div>
+  <div class="kpi"><div class="kpi-label">SLA Medio</div><div class="kpi-val ${avgSLA>=70?'ok':avgSLA>=50?'warn':'err'}">${avgSLA}%</div><div class="kpi-sub">target 80%</div></div>
+  <div class="kpi"><div class="kpi-label">Agenti Attivi</div><div class="kpi-val">${agentsActive.length}</div><div class="kpi-sub">con chiamate</div></div>
+  <div class="kpi"><div class="kpi-label">Code Attive</div><div class="kpi-val">${q.length}</div><div class="kpi-sub">con traffico</div></div>
+</div>
+
+<!-- Gruppi -->
+<h2>📦 POST VENDITA vs 🛠️ OAM</h2>
+<div class="grp-grid">
+  <div class="grp-card pv">
+    <div class="grp-title">📦 POST VENDITA — ${sPV.n} code attive</div>
+    <div class="grp-stats">
+      <div class="grp-stat"><div class="grp-stat-val">${sPV.off.toLocaleString('it')}</div><div class="grp-stat-lbl">Offerte</div></div>
+      <div class="grp-stat"><div class="grp-stat-val ok">${sPV.risp.toLocaleString('it')}</div><div class="grp-stat-lbl">${sPV.rP}% Risp.</div></div>
+      <div class="grp-stat"><div class="grp-stat-val err">${sPV.abb.toLocaleString('it')}</div><div class="grp-stat-lbl">${sPV.aP}% Abb.</div></div>
+      <div class="grp-stat"><div class="grp-stat-val ${sPV.sla>=70?'ok':sPV.sla>=50?'warn':'err'}">${sPV.sla}%</div><div class="grp-stat-lbl">SLA Medio</div></div>
+    </div>
+  </div>
+  <div class="grp-card oam">
+    <div class="grp-title">🛠️ OAM — ${sOAM.n} code attive</div>
+    <div class="grp-stats">
+      <div class="grp-stat"><div class="grp-stat-val">${sOAM.off.toLocaleString('it')}</div><div class="grp-stat-lbl">Offerte</div></div>
+      <div class="grp-stat"><div class="grp-stat-val ok">${sOAM.risp.toLocaleString('it')}</div><div class="grp-stat-lbl">${sOAM.rP}% Risp.</div></div>
+      <div class="grp-stat"><div class="grp-stat-val err">${sOAM.abb.toLocaleString('it')}</div><div class="grp-stat-lbl">${sOAM.aP}% Abb.</div></div>
+      <div class="grp-stat"><div class="grp-stat-val ${sOAM.sla>=70?'ok':sOAM.sla>=50?'warn':'err'}">${sOAM.sla}%</div><div class="grp-stat-lbl">SLA Medio</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Top agenti -->
+<div class="page-break"></div>
+<h2>🏆 Classifica Agenti</h2>
+
+<h3>Top 10 per volume chiamate risposte</h3>
+<table>
+  <thead><tr><th>#</th><th>Agente</th><th class="right">Risposte</th><th class="right">Gestite</th><th class="center">Gest. Media</th><th class="center">Conv. Media</th><th class="center">In Attesa</th></tr></thead>
+  <tbody>
+    ${top10v.map((ag,i)=>`<tr>
+      <td class="center"><b>${i+1}</b></td>
+      <td>${ag.nome}</td>
+      <td class="right mono"><b>${ag.risposta}</b></td>
+      <td class="right mono">${ag.gestione}</td>
+      <td class="center mono">${ag.gest_mmss}</td>
+      <td class="center mono">${ag.conv_mmss}</td>
+      <td class="center mono">${ag.in_attesa}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>
+
+<h3>Top 10 per gestione media più bassa (più efficienti)</h3>
+<table>
+  <thead><tr><th>#</th><th>Agente</th><th class="center">Gest. Media</th><th class="center">Conv. Media</th><th class="right">Risposte</th></tr></thead>
+  <tbody>
+    ${top10f.map((ag,i)=>`<tr>
+      <td class="center"><b>${i+1}</b></td>
+      <td>${ag.nome}</td>
+      <td class="center mono ok"><b>${ag.gest_mmss}</b></td>
+      <td class="center mono">${ag.conv_mmss}</td>
+      <td class="right mono">${ag.risposta}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>
+
+<!-- Code POST VENDITA -->
+<div class="page-break"></div>
+<h2>📦 Dettaglio code POST VENDITA (${pvQ.length})</h2>
+<table>
+  <thead><tr><th>Coda</th><th class="right">Offerte</th><th class="right">Risposte</th><th class="center">% Risp.</th><th class="right">Abband.</th><th class="center">% Abb.</th><th class="center">VMR</th><th class="center">SLA %</th><th class="center">Gest.</th></tr></thead>
+  <tbody>
+    ${pvQ.sort((a,b)=>b.offerta-a.offerta).map(c=>{
+      const slaCls = c.sla_pct>=70?'b-green':c.sla_pct>=50?'b-yellow':'b-red';
+      const abbCls = c.abband_pct<=10?'b-green':c.abband_pct<=20?'b-yellow':'b-red';
+      const rispCls = c.risp_pct>=85?'b-green':c.risp_pct>=75?'b-yellow':'b-red';
+      return `<tr>
+        <td><b>${c.nome.replace('_03','')}</b></td>
+        <td class="right mono">${c.offerta.toLocaleString('it')}</td>
+        <td class="right mono">${c.rispondi.toLocaleString('it')}</td>
+        <td class="center"><span class="badge-pdf ${rispCls}">${c.risp_pct}%</span></td>
+        <td class="right mono">${c.abbandona}</td>
+        <td class="center"><span class="badge-pdf ${abbCls}">${c.abband_pct}%</span></td>
+        <td class="center mono">${c.vmr_mmss}</td>
+        <td class="center"><span class="badge-pdf ${slaCls}">${c.sla_pct}%</span></td>
+        <td class="center mono">${c.gest_mmss}</td>
+      </tr>`;
+    }).join('')}
+  </tbody>
+</table>
+
+<!-- Code OAM -->
+<div class="page-break"></div>
+<h2>🛠️ Dettaglio code OAM (${oamQ.length})</h2>
+<table>
+  <thead><tr><th>Coda</th><th class="right">Offerte</th><th class="right">Risposte</th><th class="center">% Risp.</th><th class="right">Abband.</th><th class="center">% Abb.</th><th class="center">VMR</th><th class="center">SLA %</th><th class="center">Gest.</th></tr></thead>
+  <tbody>
+    ${oamQ.sort((a,b)=>b.offerta-a.offerta).map(c=>{
+      const slaCls = c.sla_pct>=70?'b-green':c.sla_pct>=50?'b-yellow':'b-red';
+      const abbCls = c.abband_pct<=10?'b-green':c.abband_pct<=20?'b-yellow':'b-red';
+      const rispCls = c.risp_pct>=85?'b-green':c.risp_pct>=75?'b-yellow':'b-red';
+      return `<tr>
+        <td><b>${c.nome.replace('_03','')}</b></td>
+        <td class="right mono">${c.offerta.toLocaleString('it')}</td>
+        <td class="right mono">${c.rispondi.toLocaleString('it')}</td>
+        <td class="center"><span class="badge-pdf ${rispCls}">${c.risp_pct}%</span></td>
+        <td class="right mono">${c.abbandona}</td>
+        <td class="center"><span class="badge-pdf ${abbCls}">${c.abband_pct}%</span></td>
+        <td class="center mono">${c.vmr_mmss}</td>
+        <td class="center"><span class="badge-pdf ${slaCls}">${c.sla_pct}%</span></td>
+        <td class="center mono">${c.gest_mmss}</td>
+      </tr>`;
+    }).join('')}
+  </tbody>
+</table>
+
+<!-- ALERT -->
+<div class="page-break"></div>
+<h2>⚠️ Situazioni critiche del periodo</h2>
+
+<h3>🔴 Code con SLA critico (&lt;40%) — ${slaCrit.length} code</h3>
+${slaCrit.length ? `<table>
+  <thead><tr><th>Coda</th><th class="center">SLA %</th><th class="center">% Abband.</th><th class="right">Offerte</th><th class="right">Abbandoni</th></tr></thead>
+  <tbody>${slaCrit.map(c=>`<tr>
+    <td>${c.nome.replace('_03','')}</td>
+    <td class="center"><span class="badge-pdf b-red">${c.sla_pct}%</span></td>
+    <td class="center mono">${c.abband_pct}%</td>
+    <td class="right mono">${c.offerta}</td>
+    <td class="right mono err">${c.abbandona}</td>
+  </tr>`).join('')}</tbody></table>` : '<div class="summary-box">✅ Nessuna coda con SLA critico</div>'}
+
+<h3>🟡 Code con abbandoni alti (&gt;25%) — ${abbHigh.length} code</h3>
+${abbHigh.length ? `<table>
+  <thead><tr><th>Coda</th><th class="center">% Abband.</th><th class="right">Abbandoni</th><th class="right">Offerte</th></tr></thead>
+  <tbody>${abbHigh.map(c=>`<tr>
+    <td>${c.nome.replace('_03','')}</td>
+    <td class="center"><span class="badge-pdf b-yellow">${c.abband_pct}%</span></td>
+    <td class="right mono warn">${c.abbandona}</td>
+    <td class="right mono">${c.offerta}</td>
+  </tr>`).join('')}</tbody></table>` : '<div class="summary-box">✅ Nessuna coda con abbandoni eccessivi</div>'}
+
+<h3>⏱️ Agenti con gestione media &gt; 6 minuti — ${gestHigh.length}</h3>
+${gestHigh.length ? `<table>
+  <thead><tr><th>Agente</th><th class="center">Gest. Media</th><th class="right">Risposte</th><th class="center">Conv. Media</th></tr></thead>
+  <tbody>${gestHigh.map(ag=>`<tr>
+    <td>${ag.nome}</td>
+    <td class="center"><span class="badge-pdf b-yellow">${ag.gest_mmss}</span></td>
+    <td class="right mono">${ag.risposta}</td>
+    <td class="center mono">${ag.conv_mmss}</td>
+  </tr>`).join('')}</tbody></table>` : '<div class="summary-box">✅ Tutti gli agenti hanno gestione media sotto soglia</div>'}
+
+<!-- ELENCO COMPLETO AGENTI -->
+<div class="page-break"></div>
+<h2>👤 Elenco completo agenti (${agentsActive.length})</h2>
+<table>
+  <thead><tr><th>Agente</th><th class="right">Risposte</th><th class="right">Gestite</th><th class="center">Gest. Media</th><th class="center">Conv. Media</th><th class="center">ACW</th><th class="center">In Attesa</th></tr></thead>
+  <tbody>
+    ${[...agentsActive].sort((a,b)=>b.risposta-a.risposta).map(ag=>`<tr>
+      <td>${ag.nome}</td>
+      <td class="right mono"><b>${ag.risposta}</b></td>
+      <td class="right mono">${ag.gestione}</td>
+      <td class="center mono ${ag.gest_sec>360?'warn':''}">${ag.gest_mmss}</td>
+      <td class="center mono">${ag.conv_mmss}</td>
+      <td class="center mono">${ag.acw_mmss}</td>
+      <td class="center mono ${ag.in_attesa>80?'warn':''}">${ag.in_attesa}</td>
+    </tr>`).join('')}
+  </tbody>
+</table>
+
+<div class="footer">
+  Report generato automaticamente da MOILFRA Dashboard · ${new Date().toLocaleString('it')} ·
+  Fonte dati: Genesys Cloud · Periodo: ${currentPeriod} (${p.dateRange||'—'})
+</div>
+
+<script>window.onload = () => { setTimeout(() => window.print(), 400); };</scr` + `ipt>
+</body></html>`;
+
+  // Open in new window and trigger print
+  const win = window.open('', '_blank');
+  if (!win) {
+    alert('Permetti i popup per esportare il PDF');
+    return;
+  }
+  win.document.write(reportHTML);
+  win.document.close();
+  toast('📄 Apertura anteprima stampa... Seleziona "Salva come PDF"','ti', 4500);
+}
+
+function showTab(id, el) {
+  if (currentPeriod === '__CONF__') return;
+  document.getElementById('tabs-bar').style.display = 'flex';
+  document.querySelectorAll('.dash').forEach(d=>d.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('dash-'+id).classList.add('active');
+  if (el) el.classList.add('active');
+  else document.querySelectorAll('.tab')[['riepilogo','agenti','classifica','code','alert'].indexOf(id)]?.classList.add('active');
+}
+
+// Drag & drop
+['agenti','code'].forEach(type => {
+  const card = document.getElementById(`card-${type}`);
+  card.addEventListener('dragover', e=>{e.preventDefault();card.classList.add('drag');});
+  card.addEventListener('dragleave', ()=>card.classList.remove('drag'));
+  card.addEventListener('drop', e=>{
+    e.preventDefault();card.classList.remove('drag');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const input = document.getElementById(`file-${type}`);
+      const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
+      handleFile(type, input);
+    }
+  });
+});
+
+// ── TOAST NOTIFICATIONS ───────────────────────────────────────────────────────
+function showToast(msg, type='info', duration=3500) {
+  const icons = {success:'✅', error:'❌', info:'ℹ️'};
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span class="icon">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(()=>{
+    toast.classList.add('out');
+    setTimeout(()=>toast.remove(), 300);
+  }, duration);
+}
+
+// ── EXPORT / IMPORT BACKUP ────────────────────────────────────────────────────
+function exportData() {
+  const names = Object.keys(periods);
+  if (!names.length) {
+    showToast('Nessun periodo da esportare', 'error');
+    return;
+  }
+  const payload = {
+    app: 'Genesys_Portal_Backup',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    periodCount: names.length,
+    periods: periods,
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0,10);
+  const filename = `Genesys_Backup_${dateStr}_${names.length}periodi.json`;
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast(`Backup esportato: ${filename} (${names.length} periodi)`, 'success', 4500);
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Validate format
+      if (!data.app || data.app !== 'Genesys_Portal_Backup' || !data.periods) {
+        throw new Error('File non valido. Deve essere un backup esportato da questo portale.');
+      }
+      const incomingNames = Object.keys(data.periods);
+      if (!incomingNames.length) throw new Error('Il backup non contiene periodi.');
+
+      const existingNames = Object.keys(periods);
+      const conflicts = incomingNames.filter(n => existingNames.includes(n));
+
+      let mode = 'merge'; // default: keep existing on conflict
+      if (existingNames.length === 0) {
+        mode = 'replace_all';
+      } else if (conflicts.length > 0) {
+        const choice = confirm(
+          `Trovati ${conflicts.length} periodi già esistenti:\n${conflicts.join(', ')}\n\n` +
+          `OK = Sovrascrivi quelli esistenti con i dati del backup\n` +
+          `Annulla = Mantieni quelli esistenti, importa solo i nuovi`
+        );
+        mode = choice ? 'overwrite' : 'keep_existing';
+      }
+
+      let imported = 0, skipped = 0;
+      for (const [name, periodData] of Object.entries(data.periods)) {
+        // Basic validation of period structure
+        if (!periodData.agents || !periodData.queues) { skipped++; continue; }
+        if (mode === 'keep_existing' && periods[name]) { skipped++; continue; }
+        periods[name] = periodData;
+        imported++;
+      }
+      saveToStorage();
+      currentPeriod = Object.keys(periods)[0];
+      renderApp();
+      input.value = ''; // reset file input
+
+      const msg = `Importati ${imported} periodi` + (skipped ? ` · ${skipped} saltati` : '');
+      showToast(msg, 'success', 4500);
+    } catch(err) {
+      showToast('Errore importazione: ' + err.message, 'error', 5000);
+      input.value = '';
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+loadFromStorage();
+renderApp();
+</script>
+</body>
+</html>
